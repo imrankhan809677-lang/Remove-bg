@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Background Remover - Free Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #764ba2;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-area {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .image-box {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+        }
+
+        .image-box h3 {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .image-box img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #888;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .image-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🖼️ Remove Background - Free Tool</h1>
+    <div class="subtitle">Remove image background in one click - 100% Free</div>
+
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📸</div>
+        <p>Click to select an image</p>
+        <p style="font-size: 12px; margin-top: 10px;">JPG, PNG, WEBP supported</p>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*">
+
+    <div class="loading" id="loading">
+        ⏳ Removing background... Please wait
+    </div>
+
+    <div class="preview-area" id="previewArea">
+        <div class="image-container">
+            <div class="image-box">
+                <h3>Original Image</h3>
+                <img id="originalImage" alt="Original Image">
+            </div>
+            <div class="image-box">
+                <h3>Result (Background Removed)</h3>
+                <img id="resultImage" alt="Result Image">
+                <br>
+                <a id="downloadLink" class="download-btn" download="background_removed.png">📥 Download Image</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        ⚡ Free Service | Your images are processed securely
+    </footer>
+</div>
+
+<script>
+    // Your API Key is already added
+    const API_KEY = "EiJcxqts97DeT6ab5mq9fR67";
+    
+    const fileInput = document.getElementById('fileInput');
+    const previewArea = document.getElementById('previewArea');
+    const originalImage = document.getElementById('originalImage');
+    const resultImage = document.getElementById('resultImage');
+    const downloadLink = document.getElementById('downloadLink');
+    const loading = document.getElementById('loading');
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Show original image
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            originalImage.src = event.target.result;
+            previewArea.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+        
+        // Remove background
+        removeBackground(file);
+    });
+    
+    function removeBackground(file) {
+        loading.style.display = 'block';
+        resultImage.style.display = 'none';
+        downloadLink.style.display = 'none';
+        
+        const formData = new FormData();
+        formData.append('image_file', file);
+        formData.append('size', 'auto');
+        
+        fetch('https://api.remove.bg/v1.0/removebg', {
+            method: 'POST',
+            headers: {
+                'X-Api-Key': API_KEY
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to remove background. Please check your API key or try again.');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            resultImage.src = url;
+            resultImage.style.display = 'block';
+            
+            downloadLink.href = url;
+            downloadLink.style.display = 'inline-block';
+            
+            loading.style.display = 'none';
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            alert('❌ Error: ' + error.message);
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+</body>
+</html>
